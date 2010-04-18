@@ -19,7 +19,7 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'enumerator'
+require 'enumerator' unless defined? Enumerator
 require 'rexml/document'
 
 # shared-mime-info is a pure Ruby library for accessing the MIME info
@@ -247,7 +247,7 @@ module MIME
     #
     # Returns a MIME::Type object or _nil_ if nothing matches.
     def check_globs(filename)
-      enum = Enumerable::Enumerator.new(@globs, :each_key)
+      enum = @globs.each_key rescue Enumerable::Enumerator.new(@globs, :each_key)
       found = enum.select { |pattern| File.fnmatch pattern, filename }
 
       if found.empty?
