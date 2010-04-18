@@ -154,9 +154,9 @@ module MIME
         break if File.file? file
       }
 
-      comments = {}
-      open(file) { |f|
+      open_file(file) { |f|
         doc = REXML::Document.new f
+        comments = {}
         REXML::XPath.match(doc, '*/comment').each { |c|
           if att = c.attributes['xml:lang']
             comments[att] = c.text
@@ -176,7 +176,7 @@ module MIME
         break if File.file? file
       }
 
-      open(file) { |f|
+      open_file(file) { |f|
         doc = REXML::Document.new f
         REXML::XPath.match(doc, '*/sub-class-of').collect { |c|
           MIME[c.attributes['type']]
@@ -268,7 +268,7 @@ module MIME
       if file.respond_to? :read
         check_magics_with_priority(file, 0)
       else
-        open(file) {|f| check_magics_with_priority(f, 0) }
+        open_file(file) {|f| check_magics_with_priority(f, 0) }
       end
     end
 
@@ -280,7 +280,7 @@ module MIME
     # Returns a MIME::Type object.
     def check(filename)
       check_special(filename) ||
-      open(filename) { |f|
+      open_file(filename) { |f|
         check_magics_with_priority(f, 80) ||
         check_globs(filename) ||
         check_magics_with_priority(f, 0) ||
@@ -320,7 +320,7 @@ module MIME
     end
 
     def load_globs(file)
-      open(file) { |f|
+      open_file(file) { |f|
         f.each { |line|
           next if line =~ /^#/
           cline = line.chomp
@@ -332,7 +332,7 @@ module MIME
     end
 
     def load_magic(file)
-       open(file) { |f|
+       open_file(file) { |f|
         raise 'Bad magic file' if f.readline != "MIME-Magic\0\n"
 
         f.gets =~ /^\[(\d\d):(.+)\]/
@@ -354,6 +354,10 @@ module MIME
         }
       }
     end
+
+      def open_file(file, &block)
+        open(file, "r:binary", &block) rescue open(file, "r", &block)
+      end
   end
 
   xdg_data_home = ENV['XDG_DATA_HOME'] || "#{ENV['HOME']}/.local/share"
